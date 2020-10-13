@@ -1,10 +1,10 @@
 %% Operate
-img_s = imread('download.jpg');
-
+img_s = imread('bird.jpg');
+sz = size(img_s);
 %mask = imread('square.jpg');
-mask = zeros(225);
-for i=100:150
-    for j=100:150
+mask = zeros(sz(1),sz(2));
+for i=50:150
+    for j=50:150
         mask(i,j)= 1;
     end
 end    
@@ -95,6 +95,7 @@ while(any(mask(:)))
         sum_p=0.0;
     end
     C_new = padarray(C,[floor(patch_size/2) floor(patch_size/2)],'replicate','both');
+    
     %figure();
     %imshow(C);
     % Priority
@@ -114,7 +115,7 @@ while(any(mask(:)))
     overlap = 100000;
     max_ind = floor(patch_size/2);
     patch_img = img_p(cur_patch(1)-max_ind:cur_patch(1)+max_ind,cur_patch(2)-max_ind:cur_patch(2)+max_ind);
-    C_patch = C_new(cur_patch(1)-max_ind:cur_patch(1)+max_ind,cur_patch(2)-max_ind:cur_patch(2)+max_ind);
+    C_patch = C_old(cur_patch(1)-max_ind:cur_patch(1)+max_ind,cur_patch(2)-max_ind:cur_patch(2)+max_ind);
     for i=1:sz(1)-max_ind
         for j=1:sz(2)-max_ind
             temp_img = img_p(i:i+2*max_ind,j:j+2*max_ind);
@@ -166,4 +167,4 @@ img_last = img_im;
 imshow(img_last);
 
 %%
-imshow(mask);
+imshow(img_im);

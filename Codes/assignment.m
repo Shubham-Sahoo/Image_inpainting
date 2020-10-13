@@ -1,10 +1,10 @@
 %% Operate
-img_s = imread('download.jpg');
-
+img_s = imread('bird.jpg');
+sz = size(img_s);
 %mask = imread('square.jpg');
-mask = zeros(225);
-for i=100:150
-    for j=100:150
+mask = zeros(sz(1),sz(2));
+for i=50:150
+    for j=50:150
         mask(i,j)= 1;
     end
 end    
@@ -46,7 +46,7 @@ source = ~mask;                         % 225x225 source region
 C = double(source);
 D = repmat(-0.0001,size(mask));
 C_new = padarray(C,[floor(patch_size/2) floor(patch_size/2)],'replicate','both');    % 233x233 confidence
-
+C_old =  padarray(C,[floor(patch_size/2) floor(patch_size/2)],'replicate','both');
 while(any(mask(:)))
     %delta =  conv2(mask,[1,1,1;1,-8,1;1,1,1]);
     delta =  edge(mask,'approxcanny');
@@ -95,6 +95,7 @@ while(any(mask(:)))
         sum_p=0.0;
     end
     C_new = padarray(C,[floor(patch_size/2) floor(patch_size/2)],'replicate','both');
+    
     %figure();
     %imshow(C);
     % Priority
@@ -113,20 +114,20 @@ while(any(mask(:)))
     temp_img = zeros(patch_size,patch_size);
     overlap = 100000;
     max_ind = floor(patch_size/2);
-    patch_img = img_p(cur_patch(1)-max_ind:cur_patch(1)+max_ind,cur_patch(2)-max_ind:cur_patch(2)+max_ind);
-    C_patch = C_new(cur_patch(1)-max_ind:cur_patch(1)+max_ind,cur_patch(2)-max_ind:cur_patch(2)+max_ind);
+    patch_img = img_p(cur_patch(1)-max_ind:cur_patch(1)+max_ind,cur_patch(2)-max_ind:cur_patch(2)+max_ind,:);
+    C_patch = C_old(cur_patch(1)-max_ind:cur_patch(1)+max_ind,cur_patch(2)-max_ind:cur_patch(2)+max_ind);
     for i=1:sz(1)-max_ind
         for j=1:sz(2)-max_ind
-            temp_img = img_p(i:i+2*max_ind,j:j+2*max_ind);
+            temp_img = img_p(i:i+2*max_ind,j:j+2*max_ind,:);
             count = 0.0;
-            C_img = C_new(i:i+2*max_ind,j:j+2*max_ind);
+            C_img = C_old(i:i+2*max_ind,j:j+2*max_ind);
             tar_pat = any(C_img,'all');   
             %disp(i);
             if(tar_pat)     
                 for m=1:patch_size
                     for n=1:patch_size
                         if(C_patch(m,n)>0)
-                            count = count+abs(temp_img(m,n)-patch_img(m,n));
+                            count = count+abs(temp_img(m,n,:)-patch_img(m,n,:));
                         end    
                     end
                 end
@@ -144,9 +145,9 @@ while(any(mask(:)))
     end
 
     % Replace best patch
-    img_im(cur_patch(1)-max_ind:cur_patch(1)+max_ind,cur_patch(2)-max_ind:cur_patch(2)+max_ind,1) = img_p(ptx:ptx+2*max_ind,pty:pty+2*max_ind);
-    img_im(cur_patch(1)-max_ind:cur_patch(1)+max_ind,cur_patch(2)-max_ind:cur_patch(2)+max_ind,2) = img_p(ptx:ptx+2*max_ind,pty:pty+2*max_ind);
-    img_im(cur_patch(1)-max_ind:cur_patch(1)+max_ind,cur_patch(2)-max_ind:cur_patch(2)+max_ind,3) = img_p(ptx:ptx+2*max_ind,pty:pty+2*max_ind);
+    img_im(cur_patch(1)-max_ind:cur_patch(1)+max_ind,cur_patch(2)-max_ind:cur_patch(2)+max_ind,1) = img_p(ptx:ptx+2*max_ind,pty:pty+2*max_ind,1);
+    img_im(cur_patch(1)-max_ind:cur_patch(1)+max_ind,cur_patch(2)-max_ind:cur_patch(2)+max_ind,2) = img_p(ptx:ptx+2*max_ind,pty:pty+2*max_ind,2);
+    img_im(cur_patch(1)-max_ind:cur_patch(1)+max_ind,cur_patch(2)-max_ind:cur_patch(2)+max_ind,3) = img_p(ptx:ptx+2*max_ind,pty:pty+2*max_ind,3);
     %imshow(img_im);
 
     % Update confidence and mask
