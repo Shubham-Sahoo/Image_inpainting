@@ -166,4 +166,4 @@ img_last = img_im;
 imshow(img_last);
 
 %%
-imshow(img_im);
+imshow(mask);
