@@ -1,16 +1,16 @@
 %% Operate
-img_s = imread('col.png');
+img_s = imread('bird.jpg');
 sz = size(img_s);
-mask = imread('mas.png');
-mask = rgb2gray(mask);
-%mask = zeros(sz(1),sz(2));
-%{
-for i=15:35
-    for j=15:35
-        mask(i,j,1)= 255;
+%mask = imread('mas.png');
+%mask = rgb2gray(mask);
+mask = zeros(sz(1),sz(2));
+
+for i=50:150
+    for j=50:190
+        mask(i,j)= 255;
     end
 end    
-%}
+
 img_p = padarray(img_s,[4 4],'replicate','both');
 %% vis
 figure(1);
@@ -55,7 +55,7 @@ imshow(iy);
 img_im = img_s;
 source = ~mask;                         % 225x225 source region
 C = double(source);
-patch_size = 9.0;
+patch_size = 15.0;
 sz = size(img_s);
 D = repmat(0.001,size(mask));
 img_p = padarray(img_s,[floor(patch_size/2) floor(patch_size/2)],'replicate','both');
@@ -120,7 +120,7 @@ while(any(mask(:)))
     %D(cn) = abs(ix(cn).*N_delta(:,1))+abs(iy(cn).*N_delta(:,2));
 
     % confidence
-    patch_size = 9.0;
+    patch_size = 15.0;
     sum_p=0.0;
     max_ind = floor(patch_size/2);
     
@@ -135,7 +135,7 @@ while(any(mask(:)))
                 sum_p = sum_p + C_new(j,k);
             end
         end
-        C_new(midx+max_ind,midy+max_ind) = (double(sum_p)/81.0);
+        C_new(midx+max_ind,midy+max_ind) = (double(sum_p)/225.0);
         sum_p=0.0;
     end
     %C_new = padarray(C,[floor(patch_size/2) floor(patch_size/2)],'replicate','both');
@@ -158,8 +158,8 @@ while(any(mask(:)))
     
     temp_img = zeros(patch_size,patch_size);
     overlap = 100000;
-    patch_img = img_s(cur_patch(1)-max_ind:cur_patch(1)+max_ind,cur_patch(2)-max_ind:cur_patch(2)+max_ind,:);
-    C_patch = C_old(cur_patch(1)+max_ind:cur_patch(1)+3*max_ind,cur_patch(2)+max_ind:cur_patch(2)+3*max_ind);
+    patch_img = img_pnc(cur_patch(1)-max_ind:cur_patch(1)+max_ind,cur_patch(2)-max_ind:cur_patch(2)+max_ind,:);
+    C_patch = C_new(cur_patch(1)+max_ind:cur_patch(1)+3*max_ind,cur_patch(2)+max_ind:cur_patch(2)+3*max_ind);
     C_patch = im2bw(C_patch,0.0001);
     %figure(9);
     %imshow(C_patch);  
@@ -180,10 +180,11 @@ while(any(mask(:)))
             
             %disp(i);
             if(tar_pat==1)  
-
+                conf = 1.0;
                 for m=1:patch_size
                     for n=1:patch_size
                         if(C_patch(m,n)>0.0)
+                            %conf = conf+C_patch(m,n);
                             a1 = temp_img(m,n,1);
                             a2 = temp_img(m,n,2);
                             a3 = temp_img(m,n,3);
@@ -193,12 +194,14 @@ while(any(mask(:)))
                             %count = count+sum(square(temp_img(m,n,:)-patch_img(m,n,:)));
                             temp_ls = [a1,a2,a3];
                             patch_ls = [b1,b2,b3];
-                            
-                            count = count+sum(abs(temp_ls-patch_ls));
+                            t_h = mean(temp_ls);
+                            p_h = mean(patch_ls);
+                            count = count+sum(abs(t_h-p_h));
                         
                         end
                     end
                 end
+                count = count/conf;
                 if(count<overlap)
                     %disp(count);
                     %disp(temp_img);
@@ -230,7 +233,7 @@ while(any(mask(:)))
     mask(cur_patch(1)-max_ind:cur_patch(1)+max_ind,cur_patch(2)-max_ind:cur_patch(2)+max_ind) = 0;
     figure(10);
     imshow(mask);
-    C_old(cur_patch(1):cur_patch(1)+2*max_ind,cur_patch(2):cur_patch(2)+2*max_ind) = C_new(ptx:ptx+2*max_ind,pty:pty+2*max_ind);
+    C_old(cur_patch(1):cur_patch(1)+2*max_ind,cur_patch(2):cur_patch(2)+2*max_ind) = C_new(ptx-max_ind:ptx+max_ind,pty-max_ind:pty+max_ind);
     %C = im2bw(C,0.0001);
     ix_ch = padarray(ix,[floor(patch_size/2) floor(patch_size/2)],'replicate','both');
     iy_ch = padarray(iy,[floor(patch_size/2) floor(patch_size/2)],'replicate','both');
@@ -248,4 +251,4 @@ imshow(img_last);
 %%
 figure(9);
 imshow(img_im);
-%imwrite(img_im,'bird_inp3.jpg','jpg');
+imwrite(img_im,'bird_inp15.jpg','jpg');
